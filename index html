@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SOVEREIGN V30 | FULL AUDIT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #00d2ff; --accent: #9d50bb; --success: #00ff88; --danger: #ff4b2b; --glass: rgba(15, 20, 25, 0.98); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #0a0b10; color: #e0e0e0; font-family: 'Inter', sans-serif; margin: 0; padding: 10px; }
+        .container { width: 100%; max-width: 500px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
+        .card { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 15px; position: relative; }
+
+        /* Stats Row */
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
+        .stat-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-label { font-size: 0.5rem; color: #888; text-transform: uppercase; }
+        .stat-val { font-family: 'Orbitron'; font-size: 0.9rem; color: #fff; margin-top: 3px; }
+
+        /* Progress Bar */
+        .progress-bg { background: rgba(255,255,255,0.05); height: 6px; border-radius: 10px; overflow: hidden; margin: 12px 0; border: 1px solid rgba(255,255,255,0.1); }
+        #progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: 0.5s; box-shadow: 0 0 10px var(--primary); }
+
+        /* Digit Hero */
+        .digit-hero { text-align: center; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        #digit { font-family: 'Orbitron'; font-size: 5.5rem; color: var(--primary); line-height: 1; margin: 5px 0; }
+        #streak-pips { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+        .pip { width: 10px; height: 10px; border-radius: 50%; background: #222; border: 1px solid #444; transition: 0.3s; }
+        .pip.active { background: var(--success); box-shadow: 0 0 10px var(--success); border-color: var(--success); }
+
+        /* Sniper Overlay */
+        #sniper-pop { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: var(--glass); border: 2px solid var(--primary); padding: 20px; border-radius: 20px; z-index: 9999; opacity: 0; pointer-events: none; transition: 0.2s; text-align: center; width: 80%; max-width: 280px; backdrop-filter: blur(10px); box-shadow: 0 0 50px rgba(0,0,0,0.9); }
+        #sniper-pop.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+        /* Audit Table */
+        .log-container { max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
+        th { padding: 10px; color: #555; text-align: center; border-bottom: 1px solid #222; text-transform: uppercase; }
+        td { padding: 10px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.02); }
+
+        .btn-main { background: linear-gradient(45deg, var(--primary), var(--accent)); border: none; color: #fff; padding: 18px; border-radius: 12px; font-family: 'Orbitron'; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer; }
+        .btn-stop { background: var(--danger) !important; }
+        input { background: #161821; border: 1px solid #2a2e3f; color: #fff; padding: 12px; border-radius: 8px; font-size: 0.85rem; width: 100%; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="sniper-pop">
+    <div id="pop-title" style="font-family:'Orbitron'; font-size: 1.1rem; color:var(--primary);">TRIPLE DETECTED!</div>
+    <div id="pop-body" style="font-size:0.8rem; margin:10px 0; color:#ccc; line-height:1.4;">--</div>
+    <div id="pop-res" style="font-size:1.3rem; font-weight:bold;"></div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div id="market-name" style="font-size:0.6rem; color:var(--primary); font-weight:bold;">READY TO INITIALIZE</div>
+            <div id="session-tag" style="font-size:0.5rem; color:#555; border:1px solid #333; padding:2px 6px; border-radius:4px;">OFFLINE</div>
+        </div>
+        <div class="stats-row" style="margin-top:15px;">
+            <div class="stat-box"><div class="stat-label">Net Profit</div><div id="stat-profit" class="stat-val" style="color:var(--success)">$0.00</div></div>
+            <div class="stat-box"><div class="stat-label">Next Stake</div><div id="stat-stake" class="stat-val">$0.00</div></div>
+            <div class="stat-box"><div class="stat-label">Market Wins</div><div id="stat-wins" class="stat-val">0/3</div></div>
+        </div>
+        <div class="progress-bg"><div id="progress-fill"></div></div>
+    </div>
+
+    <div class="card digit-hero">
+        <div id="digit">--</div>
+        <div style="font-size:0.5rem; color:#666; letter-spacing:2px; text-transform:uppercase;">Volatility Streak</div>
+        <div id="streak-pips">
+            <div class="pip" id="pip-1"></div>
+            <div class="pip" id="pip-2"></div>
+            <div class="pip" id="pip-3"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <input type="password" id="api-token" placeholder="Deriv API Token...">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+            <div><label style="font-size:0.5rem; color:#888;">START STAKE</label><input type="number" id="base" value="2.00"></div>
+            <div><label style="font-size:0.5rem; color:#888;">GOAL ($)</label><input type="number" id="goal" value="10.00"></div>
+        </div>
+        <button id="start-btn" class="btn-main" onclick="handleBot()">START AUTO-ROTATOR</button>
+    </div>
+
+    <div class="card log-container" style="padding:0;">
+        <table>
+            <thead><tr><th>MARKET</th><th>TARGET</th><th>EXIT</th><th>PROFIT</th></tr></thead>
+            <tbody id="logs"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let ws, isRunning = false, isBusy = false;
+    let baseStake = 0, currentStake = 0, totalProfit = 0, marketWins = 0;
+    let history = [];
+    
+    const markets = ["1HZ10V", "R_10", "1HZ25V", "R_25", "1HZ50V", "R_50", "1HZ75V", "R_75", "1HZ100V", "R_100"];
+    let marketIdx = 0;
+
+    function handleBot() {
+        if (!isRunning) startSession();
+        else location.reload();
+    }
+
+    function startSession() {
+        const token = document.getElementById('api-token').value;
+        if (!token) return alert("API Token Required");
+
+        isRunning = true;
+        baseStake = parseFloat(document.getElementById('base').value);
+        currentStake = baseStake;
+        
+        document.getElementById('start-btn').innerText = "STOP & RESET";
+        document.getElementById('start-btn').classList.add('btn-stop');
+        document.getElementById('session-tag').innerText = "LIVE";
+        document.getElementById('session-tag').style.color = "var(--success)";
+        
+        connect(token);
+    }
+
+    function connect(token) {
+        const symbol = markets[marketIdx];
+        document.getElementById('market-name').innerText = "ACTIVE: " + symbol.replace("1HZ", "VOL ").replace("V", " (1s)").replace("R_", "VOL ");
+        
+        if (ws) ws.close();
+        ws = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=126967`);
+        
+        ws.onopen = () => ws.send(JSON.stringify({ "authorize": token }));
+        ws.onmessage = (e) => {
+            const res = JSON.parse(e.data);
+            if (res.msg_type === 'authorize') {
+                ws.send(JSON.stringify({ "ticks": symbol, "subscribe": 1 }));
+            }
+            if (res.tick && isRunning) {
+                const d = parseInt(res.tick.quote.toString().slice(-1));
+                document.getElementById('digit').innerText = d;
+                
+                history.push(d);
+                if (history.length > 3) history.shift();
+
+                if (history.length === 3 && history.every(v => v === d) && !isBusy) {
+                    fireTrade(d, symbol);
+                }
+            }
+            if (res.msg_type === 'proposal_open_contract' && res.proposal_open_contract.is_sold) {
+                handleResult(res.proposal_open_contract);
+            }
+        };
+    }
+
+    function fireTrade(target, symbol) {
+        isBusy = true;
+        const pop = document.getElementById('sniper-pop');
+        document.getElementById('pop-title').innerText = "TRIPLE DETECTED!";
+        document.getElementById('pop-body').innerHTML = `MARKET: ${symbol}<br>TARGETING DIFFER: <b>${target}</b>`;
+        document.getElementById('pop-res').innerText = "";
+        pop.classList.add('active');
+
+        ws.send(JSON.stringify({
+            "buy": 1, "price": parseFloat(currentStake.toFixed(2)),
+            "parameters": {
+                "amount": parseFloat(currentStake.toFixed(2)), "basis": "stake",
+                "contract_type": "DIGITDIFF", "currency": "USD",
+                "duration": 1, "duration_unit": "t", "symbol": symbol, "barrier": target
+            }
+        }));
+        ws.send(JSON.stringify({"proposal_open_contract": 1, "subscribe": 1}));
+    }
+
+    function handleResult(c) {
+        const profit = parseFloat(c.profit);
+        const exit = c.exit_tick_display_value.toString().slice(-1);
+        const target = c.barrier;
+        totalProfit += profit;
+
+        document.getElementById('pop-title').innerText = profit >= 0 ? "SUCCESS!" : "LOST";
+        document.getElementById('pop-title').style.color = profit >= 0 ? "var(--success)" : "var(--danger)";
+        document.getElementById('pop-body').innerHTML = `TARGET: ${target} | EXIT: ${exit}<br>VOLATILITY: ${c.symbol}`;
+        document.getElementById('pop-res').innerText = profit >= 0 ? `+$${profit.toFixed(2)}` : `-$${Math.abs(profit).toFixed(2)}`;
+
+        if (profit >= 0) {
+            marketWins++;
+            currentStake += profit; // Compound
+            if(marketWins <= 3) document.getElementById(`pip-${marketWins}`).classList.add('active');
+        } else {
+            marketWins = 0;
+            currentStake = baseStake;
+            document.querySelectorAll('.pip').forEach(p => p.classList.remove('active'));
+        }
+
+        updateDashboard(c.symbol, target, exit, profit);
+
+        if (marketWins >= 3) {
+            document.getElementById('pop-title').innerText = "MARKET CLEARED!";
+            document.getElementById('pop-body').innerHTML = "3 WINS SECURED.<br>ROTATING TO NEXT MARKET...";
+            setTimeout(() => { rotate(); }, 1500);
+        }
+
+        const goal = parseFloat(document.getElementById('goal').value);
+        if (totalProfit >= goal) { alert("Session Goal Reached!"); location.reload(); }
+
+        setTimeout(() => { 
+            if (marketWins < 3) document.getElementById('sniper-pop').classList.remove('active');
+            isBusy = false; 
+            history = []; 
+        }, 1500);
+    }
+
+    function rotate() {
+        marketWins = 0;
+        marketIdx = (marketIdx + 1) % markets.length;
+        document.querySelectorAll('.pip').forEach(p => p.classList.remove('active'));
+        document.getElementById('sniper-pop').classList.remove('active');
+        connect(document.getElementById('api-token').value);
+    }
+
+    function updateDashboard(m, t, e, p) {
+        const goal = parseFloat(document.getElementById('goal').value);
+        const prog = Math.min((totalProfit / goal) * 100, 100);
+        
+        document.getElementById('stat-profit').innerText = `$${totalProfit.toFixed(2)}`;
+        document.getElementById('stat-stake').innerText = `$${currentStake.toFixed(2)}`;
+        document.getElementById('stat-wins').innerText = `${marketWins}/3`;
+        document.getElementById('progress-fill').style.width = `${prog > 0 ? prog : 0}%`;
+
+        const row = `<tr><td>${m}</td><td>${t}</td><td>${e}</td><td style="color:${p >= 0 ? 'var(--success)' : 'var(--danger)'}">$${p.toFixed(2)}</td></tr>`;
+        document.getElementById('logs').insertAdjacentHTML('afterbegin', row);
+    }
+</script>
+</body>
+</html>
